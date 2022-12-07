@@ -1,0 +1,284 @@
+#HILL CIPHER
+#include <bits/stdc++.h>
+using namespace std;
+vector<int> multiply(vector<vector<int>> mat,vector<int> vec){
+    vector<int> ans(vec.size(),0);
+    for(int i=0;i<mat.size();i++){
+        for(int j=0;j<vec.size();j++){
+            ans[i] += mat[i][j]*vec[j];
+        }
+        ans[i]%=26;
+    }
+    return ans;
+}
+int main() {
+    string key,pt,ct;
+    cin>>pt>>key;
+    int n=key.size();
+    n = ceil(sqrt(n)*1.0);
+    vector<vector<int>> mat(n,vector<int>(n,0));
+    int steps;
+    steps =ceil( pt.size()/(n*1.0) );
+    int counter=0;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<n;j++){
+            if(counter >= key.size()){
+                mat[i][j]=25;
+            }else{
+                mat[i][j] = key[counter] - 'A';
+            }
+            counter++;
+        }
+    }
+    for(int i=0;i<steps;i++){
+        vector<int> vec(n);
+        for(int j=0;j<n;j++){
+            if(i*steps + j >= pt.size()){
+                vec[j] = 25;
+            }else{
+                vec[j] = pt[i*steps + j] - 'A';
+            }
+        }
+        auto temp = multiply(mat,vec);
+        for(auto it:temp){
+            ct+= (char)(it + 'A');
+        }
+    }
+    cout<<ct;
+}
+
+--------------------------
+
+#Play Fair Cipher
+
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    string key,pt,ct;
+    cin>>pt>>key;
+    int n=key.size();
+    vector<vector<int>> mat(5,vector<int>(5,0));
+    map<char,int> mp;
+    mp['J']=1;
+    map<char,pair<int,int>> mp2;
+    char t='A';
+    int counter=0;
+    for(int i=0;i<5;i++){
+        for(int j=0;j<5;j++){
+            while(counter<key.size() && mp[key[counter]]==1){
+                counter++;
+            }
+            if(counter<key.size()){
+                mp[key[counter]]=1;
+                mat[i][j]=key[counter]-'A';
+                mp2[key[counter]]={i,j};
+                counter++;        
+            }else{
+                while(mp[t]==1){
+                    t=t+1;
+                }
+                mp[t]=1;
+                mat[i][j]=t-'A';
+                mp2[t]={i,j};
+            }
+        }
+    }
+    mp2['J']=mp2['I'];
+    cout<<"KEY MATRIX:\n";
+    for(auto it:mat){
+        for(auto itr:it){
+            cout<<itr<<" ";
+        }
+        cout<<endl;
+    }
+    for(int i=0;i<pt.size();i+=2){
+        int a,b;
+        if(i+1<pt.size() && pt[i]!=pt[i+1]){
+            if(mp2[pt[i]].first == mp2[pt[i+1]].first){
+                a = mat[mp2[pt[i]].first][(mp2[pt[i]].second + 1)%5];
+                b = mat[mp2[pt[i+1]].first][(mp2[pt[i+1]].second + 1)%5];
+            }else if(mp2[pt[i]].second == mp2[pt[i+1]].second){
+                
+                a = mat[(mp2[pt[i]].first + 1)%5][mp2[pt[i]].second];
+                b = mat[(mp2[pt[i+1]].first + 1)%5][mp2[pt[i+1]].second];
+            }else{
+                a = mat[mp2[pt[i]].first][mp2[pt[i+1]].second];
+                b = mat[mp2[pt[i+1]].first][mp2[pt[i]].second];
+            }
+
+        }else{
+            if(mp2[pt[i]].first == mp2['X'].first){
+                a = mat[mp2[pt[i]].first][(mp2[pt[i]].second + 1)%5];
+                b = mat[mp2['X'].first][(mp2['X'].second + 1)%5];
+            }else if(mp2[pt[i]].second == mp2['X'].second){
+                
+                a = mat[(mp2[pt[i]].first + 1)%5][mp2[pt[i]].second];
+                b = mat[(mp2['X'].first + 1)%5][mp2['X'].second];
+            }else{
+                a = mat[mp2[pt[i]].first][mp2['X'].second];
+                b = mat[mp2['X'].first][mp2[pt[i]].second];
+            }
+            i--;
+        }
+        ct = ct + (char)(a+'A') + (char)(b+'A');
+    }
+    cout<<ct;
+}
+
+--------------------------------------------
+
+#RC4
+
+
+#include<bits/stdc++.h>
+#include<time.h>
+int n =256;
+using namespace std;
+void print(vector<int> arr){
+    int n = arr.size();
+    for(int i=0;i<n;i++){
+        cout<<arr[i]<<" ";
+    }
+    cout<<endl;
+}
+int main(){
+
+    srand(time(0));
+    vector<int> s(n,0);
+    for(int i=0;i<n;i++){
+        s[i]=i;
+    }
+    int j=0;
+    int i=0;
+    vector<int> k(n);
+    for(int i=0;i<n;i++){
+        k[i]=(rand()+10)%50;
+    }
+    while(i<n){
+        j=(j+s[i]+k[i])%n;
+        swap(s[i],s[j]);
+        i++;
+    }
+    i=0;
+    j = 0;
+    while(i<n){
+        i++;
+        j=(j+s[i])%n;
+        swap(s[i],s[j]);
+        int t = (s[i]+s[j])%n;
+        k[i] = s[t];
+    }
+    vector<int> plain(n);
+    for(int i=0;i<n;i++){
+        plain[i]=(rand()+10)%50;
+    }
+    cout<<"plain text: ";
+    print(plain);
+    vector<int> cipher(n);
+    for(int i=0;i<n;i++){
+        cipher[i] = plain[i]^k[i];
+    }
+    cout<<"cipher text: ";
+    print(cipher);
+}
+
+-----------------------------------------
+
+#RSA
+
+#include <bits/stdc++.h>
+using namespace std;
+int powerexp(int a,int x,int mod){
+    int ans=1;
+    for(int i=0;i<x;i++){
+        ans = (ans%mod)*(a%mod);
+    }
+    return ans%mod;
+}
+int main(){
+    double p,q;
+    cout<<"Enter value of prime numbers p and q - ";
+    cin>>p>>q;
+    double n = p*q;
+    cout<<"n = "<<n<<endl;
+    double qn = (p-1)*(q-1);
+    cout<<"qn = "<<qn<<endl;
+    double e; // 1<e<qn such that gcd(e,qn) = 1
+    for(double i = 2; i<qn; i++){
+        if((int(qn))%int(i) != 0){
+            e = i;
+            break;
+        }
+    }
+    cout<<"e = "<<e<<endl;
+    double d; // de mod qn = 1
+    for(int i=0;;i++){
+        if((int(i*qn) + 1)%int(e) == 0){
+            d = ((i*qn) + 1)/e;
+            break;
+        }
+    }
+    cout<<"d = "<<d<<endl;
+    double M,C;
+    cout<<"Data to be encrypted, M = ";
+    cin>>M;
+    C = powerexp(M,e,n);
+    cout<<"\nCipher = "<<C;
+    int M1 = powerexp(C,d,n);
+    cout<<"\nDecrypted data, M1 = "<<M1<<endl;
+    if(M==M1){
+        cout<<"M == M1"<<endl;
+    }
+    return 0;
+}
+
+--------------------------------
+
+#digital signature using RSA
+
+#include <bits/stdc++.h>
+using namespace std;
+int powerexp(int a,int x,int mod){
+    int ans=1;
+    for(int i=0;i<x;i++){
+        ans = (ans%mod)*(a%mod);
+    }
+    return ans%mod;
+}
+int main(){
+    int p,q;
+    cout<<"Enter value of prime numbers p and q - ";
+    cin>>p>>q;
+    int n = p*q;
+    cout<<"n = "<<n<<endl;
+    int qn = (p-1)*(q-1);
+    cout<<"qn = "<<qn<<endl;
+    int e; // 1<e<qn such that gcd(e,qn) = 1
+    for(int i = 2; i<qn; i++){
+        if((int(qn))%int(i) != 0){
+            e = i;
+            break;
+        }
+    }
+    cout<<"e = "<<e<<endl;
+    int d; // de mod qn = 1
+    for(int i=0;;i++){
+        if((int(i*qn) + 1)%int(e) == 0){
+            d = ((i*qn) + 1)/e;
+            break;
+        }
+    }
+    cout<<"d = "<<d<<endl;
+    int M,S;
+    cout<<"Data to be encrypted, M = ";
+    cin>>M;
+    S = powerexp(M,d,n);
+    cout<<"\n S = "<<S;
+    int M1 = powerexp(S,e,n);
+    cout<<"\n, M1 = "<<M1<<endl;
+    if(M==M1){
+        cout<<"M == M1"<<endl;
+    }
+    return 0;
+}
